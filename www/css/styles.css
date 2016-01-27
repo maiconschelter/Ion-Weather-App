@@ -10,3 +10,27 @@
     vertical-align: middle;
     font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
+
+.scroll {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.scroll-content {
+    display: table !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.current-time {
+    font-family: "Neue";
+}
+
+.current-time div {
+    margin: 10px;
+}
+
+.current-time div span b {
+    font-size: 75px;
+}

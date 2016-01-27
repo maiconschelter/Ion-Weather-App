@@ -1,33 +1,33 @@
 angular.module('TempoAgora', ['ionic'])
 
+.constant('urlService', 'http://developers.agenciaideias.com.br/tempo/json/')
+
 .run(function($ionicPlatform) {
     $ionicPlatform.ready(function() {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            var iLatitude = position.coords.latitude;
-            var iLongitude = position.coords.longitude;
-            var oLatLng = new google.maps.LatLng(iLatitude, iLongitude);
-            var geocoder = new google.maps.Geocoder();
-            geocoder.geocode({'latLng':oLatLng}, function(results, status) {
-                var oResult = results[1];
-                if (status === google.maps.GeocoderStatus.OK && oResult) {
-                    var aAddress = oResult.address_components;
-                    var sCidade = aAddress[1].long_name;
-                    var sEstado = aAddress[3].short_name;
-                }
-            });
-        });
+        getGeoLocation();
     });
 })
 
-.controller("MainController", function($scope) {
+.controller("MainController", function($scope, $http, urlService) {
+    $scope.content = [];
     $scope.slideHasChanged = function($index) {
         console.log($index);
     };
-    $scope.content = [{
-         id: 2
-        ,location: 'B'
-    },{
-         id: 1
-        ,location: 'A'
-    }];
+    var aDados = angular.fromJson(localStorage.tempoAgora);
+    angular.forEach(aDados, function(value, key){
+        var oLocation = angular.fromJson(value);
+        urlService += oLocation.cidade + ' - ' + oLocation.estado;
+        $http.get(urlService).then(function(response) {
+            console.log(response.data);
+        });
+        $scope.content.push({id:key+1,location:oLocation.cidade + ', ' + oLocation.estado});
+    });
 })
+
+.directive('dateNow', ['$filter', function($filter) {
+    return {
+        link: function($scope, $element, $attrs) {
+            $element.text($filter('date')(new Date(), $attrs.dateNow));
+        }
+    };
+}])
