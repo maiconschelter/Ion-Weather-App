@@ -1,0 +1,12 @@
+{
+  "name": "TempoAgora",
+  "app_id": "3d9cf8cc",
+  "gulpStartupTasks": [
+    "sass",
+    "watch"
+  ],
+  "watchPatterns": [
+    "www/**/*",
+    "!www/lib/**/*"
+  ]
+}
