@@ -1,33 +1,60 @@
-angular.module('TempoAgora', ['ionic'])
+var AppTempo = angular.module('TempoAgora', ['ionic']);
 
-.constant('urlService', 'http://developers.agenciaideias.com.br/tempo/json/')
+AppTempo.constant('urlService', 'http://developers.agenciaideias.com.br/tempo/json/');
 
-.run(function($ionicPlatform) {
+AppTempo.config(function($stateProvider, $urlRouterProvider) {
+    $stateProvider
+        .state('home', {
+             url: '/home'
+            ,templateUrl: 'tpl/home.html'
+            ,controller: 'MainController'
+        })
+        .state('config', {
+             url: '/config'
+            ,templateUrl: 'tpl/config.html'
+            ,controller: 'MainController'
+        });
+        $urlRouterProvider.otherwise('/home');
+});
+
+AppTempo.run(function($ionicPlatform) {
     $ionicPlatform.ready(function() {
         getGeoLocation();
     });
-})
+});
 
-.controller("MainController", function($scope, $http, urlService) {
-    $scope.content = [];
-    $scope.slideHasChanged = function($index) {
-        console.log($index);
-    };
-    var aDados = angular.fromJson(localStorage.tempoAgora);
-    angular.forEach(aDados, function(value, key){
-        var oLocation = angular.fromJson(value);
-        urlService += oLocation.cidade + ' - ' + oLocation.estado;
-        $http.get(urlService).then(function(response) {
-            console.log(response.data);
-        });
-        $scope.content.push({id:key+1,location:oLocation.cidade + ', ' + oLocation.estado});
-    });
-})
-
-.directive('dateNow', ['$filter', function($filter) {
+AppTempo.factory('TempoAPI', ['$http', '$rootScope', 'urlService', function($http, $rootScope, urlService){
+    var dados = [];
     return {
-        link: function($scope, $element, $attrs) {
-            $element.text($filter('date')(new Date(), $attrs.dateNow));
+        getTempo: function(local){
+            return $http.get(urlService + local).then(function(response) {
+                dados = response.data;
+                $rootScope.$broadcast('handleSharedOrders', dados);
+                return dados;
+            });
         }
     };
-}])
+}]);
+
+AppTempo.controller('MainController', ['$scope', '$rootScope', '$filter', '$location', 'TempoAPI', function($scope, $rootScope, $filter, $location, TempoAPI){
+    $scope.content = [];
+    var dataStorage = angular.fromJson(localStorage.tempoAgora);
+    angular.forEach(dataStorage, function(value, key){
+        var location = angular.fromJson(value);
+        var cidade = location.cidade.toLowerCase() + '-' + location.estado.toLowerCase();
+        TempoAPI.getTempo(cidade).then(function(data){
+            var elDataHora = angular.element(document.getElementById('data_hora_' + location.id));
+            var elTempoIcon = angular.element(document.getElementById('tempo_icon_' + location.id));
+            var elTempoValor = angular.element(document.getElementById('tempo_valor_' + location.id));
+            var elTempoDesc = angular.element(document.getElementById('tempo_desc_' + location.id));
+            elDataHora.text($filter('date')(Date.now(), 'EEE, MMM dd h:m:s a'));
+            elTempoIcon.attr('src', data.agora.imagem);
+            elTempoValor.text(data.agora.temperatura + '°C');
+            elTempoDesc.text(data.agora.descricao);
+            setInterval(function(){
+                elDataHora.text($filter('date')(Date.now(), 'EEE, MMM dd h:m:s a'));
+            }, 1000);
+        });
+        $scope.content.push({id:location.id,location:location.cidade + ', ' + location.estado});
+    });
+}]);

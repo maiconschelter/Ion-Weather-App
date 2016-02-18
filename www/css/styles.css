@@ -27,10 +27,16 @@
     font-family: "Neue";
 }
 
-.current-time div {
-    margin: 10px;
+.current-time div:nth-child(3) {
+    margin: 20px 0px 10px 0px;
 }
 
-.current-time div span b {
+.current-time div span span {
     font-size: 75px;
+    font-weight: bold;
+}
+
+#tempo_icon {
+    width: 80px;
+    height: 80px;
 }
